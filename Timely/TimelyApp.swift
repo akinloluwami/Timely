@@ -46,6 +46,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var isRunning: Bool = false
     var settingsWindow: NSWindow?
     
+    // Sound effects
+    private let startSound = NSSound(named: "Tink")
+    private let stopSound = NSSound(named: "Pop")
+    
     // Add notification observers
     private var observers: [NSObjectProtocol] = []
 
@@ -182,6 +186,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         isRunning = true
         startTime = Date() - elapsedTime
         
+        // Play start sound
+        startSound?.play()
+        
         // Ensure timer is created on main thread
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -205,6 +212,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func pauseTimer() {
         isRunning = false
         elapsedTime = Date().timeIntervalSince(startTime ?? Date())
+        
+        // Play stop sound
+        stopSound?.play()
+        
         timer?.invalidate()
         timer = nil
     }
