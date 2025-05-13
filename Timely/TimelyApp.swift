@@ -52,6 +52,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         clickGesture.buttonMask = 0x1 // Left click
         button.addGestureRecognizer(clickGesture)
         
+        // Set up double-click handling
+        let doubleClickGesture = NSClickGestureRecognizer(target: self, action: #selector(handleDoubleClick(_:)))
+        doubleClickGesture.buttonMask = 0x1 // Left click
+        doubleClickGesture.numberOfClicksRequired = 2
+        button.addGestureRecognizer(doubleClickGesture)
+        
         // Set up right-click menu
         statusItem.menu = menu
     }
@@ -59,6 +65,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func handleClick(_ gesture: NSClickGestureRecognizer) {
         if gesture.buttonMask == 0x1 { // Left click
             toggleTimer()
+        }
+    }
+    
+    @objc private func handleDoubleClick(_ gesture: NSClickGestureRecognizer) {
+        if gesture.buttonMask == 0x1 { // Left click
+            resetTimer()
         }
     }
     
@@ -123,8 +135,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Invalidate existing timer if any
             self.timer?.invalidate()
             
-            // Create new timer
-            let newTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            // Create new timer with shorter interval for smoother updates
+            let newTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
                 self?.updateTime()
             }
             
@@ -162,7 +174,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let hours = Int(interval) / 3600
         let minutes = (Int(interval) % 3600) / 60
         let seconds = Int(interval) % 60
-        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        let milliseconds = Int((interval.truncatingRemainder(dividingBy: 1)) * 10) % 10
+        return String(format: "%02d:%02d:%02d:%d", hours, minutes, seconds, milliseconds)
     }
 
     @objc func quitApp() {
