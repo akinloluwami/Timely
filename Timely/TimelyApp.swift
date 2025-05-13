@@ -71,7 +71,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         
-        button.title = "00:00:00:0"
+        // Create attributed string with icon and time
+        let timeString = "00:00:00:0"
+        let image = NSImage(systemSymbolName: "clock", accessibilityDescription: "Timer")
+        image?.size = NSSize(width: 16, height: 16)
+        
+        let attributedString = NSMutableAttributedString()
+        
+        // Add clock icon
+        if let image = image {
+            let imageAttachment = NSTextAttachment()
+            imageAttachment.image = image
+            let imageString = NSAttributedString(attachment: imageAttachment)
+            attributedString.append(imageString)
+            attributedString.append(NSAttributedString(string: " "))
+        }
+        
+        // Add time
+        attributedString.append(NSAttributedString(string: timeString))
+        
+        button.attributedTitle = attributedString
         
         // Create menu
         let menu = NSMenu()
@@ -201,7 +220,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func updateTime() {
         let currentTime = Date().timeIntervalSince(startTime ?? Date())
         if let button = statusItem.button {
-            button.title = formatTime(currentTime)
+            let timeString = formatTime(currentTime)
+            
+            // Create attributed string with icon and time
+            let image = NSImage(systemSymbolName: "clock", accessibilityDescription: "Timer")
+            image?.size = NSSize(width: 16, height: 16)
+            
+            let attributedString = NSMutableAttributedString()
+            
+            // Add clock icon
+            if let image = image {
+                let imageAttachment = NSTextAttachment()
+                imageAttachment.image = image
+                let imageString = NSAttributedString(attachment: imageAttachment)
+                attributedString.append(imageString)
+                attributedString.append(NSAttributedString(string: " "))
+            }
+            
+            // Add time
+            attributedString.append(NSAttributedString(string: timeString))
+            
+            button.attributedTitle = attributedString
         }
     }
 
