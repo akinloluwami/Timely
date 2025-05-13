@@ -68,12 +68,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func setupStatusItem() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        // Set fixed width for the status item
+        statusItem = NSStatusBar.system.statusItem(withLength: 120)
         
         guard let button = statusItem.button else {
             print("Error: Failed to create status item button")
             return
         }
+        
+        // Configure button properties
+        button.imagePosition = .imageLeft
+        button.imageHugsTitle = true
         
         // Create attributed string with icon and time
         let timeString = "00:00:00:0"
@@ -91,8 +96,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             attributedString.append(NSAttributedString(string: " "))
         }
         
-        // Add time
-        attributedString.append(NSAttributedString(string: timeString))
+        // Add time with fixed-width font
+        let timeAttributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        ]
+        attributedString.append(NSAttributedString(string: timeString, attributes: timeAttributes))
         
         button.attributedTitle = attributedString
         
@@ -248,8 +256,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 attributedString.append(NSAttributedString(string: " "))
             }
             
-            // Add time
-            attributedString.append(NSAttributedString(string: timeString))
+            // Add time with fixed-width font
+            let timeAttributes: [NSAttributedString.Key: Any] = [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+            ]
+            attributedString.append(NSAttributedString(string: timeString, attributes: timeAttributes))
             
             button.attributedTitle = attributedString
         }
