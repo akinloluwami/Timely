@@ -6,8 +6,35 @@ struct TimelyStopwatchApp: App {
 
     var body: some Scene {
         Settings {
-            EmptyView()
+            SettingsView()
         }
+    }
+}
+
+struct SettingsView: View {
+    @AppStorage("showMilliseconds") private var showMilliseconds = true
+    @AppStorage("startOnLaunch") private var startOnLaunch = false
+    @AppStorage("alwaysOnTop") private var alwaysOnTop = false
+    
+    var body: some View {
+        Form {
+            Toggle("Show Milliseconds", isOn: $showMilliseconds)
+            Toggle("Start Timer on Launch", isOn: $startOnLaunch)
+            Toggle("Always on Top", isOn: $alwaysOnTop)
+            
+            Text("Keyboard Shortcuts:")
+                .font(.headline)
+                .padding(.top)
+            
+            Group {
+                Text("• Left Click: Start/Pause")
+                Text("• Double Click: Reset")
+                Text("• Right Click: Show Menu")
+            }
+            .font(.system(.body, design: .monospaced))
+        }
+        .padding()
+        .frame(width: 300, height: 200)
     }
 }
 
@@ -17,6 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var startTime: Date?
     var elapsedTime: TimeInterval = 0
     var isRunning: Bool = false
+    var settingsWindow: NSWindow?
     
     // Add notification observers
     private var observers: [NSObjectProtocol] = []
@@ -24,6 +52,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusItem()
         setupNotificationObservers()
+        
+        // Start timer on launch if enabled
+        if UserDefaults.standard.bool(forKey: "startOnLaunch") {
+            startTimer()
+        }
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -38,12 +71,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         
-        button.title = "00:00:00"
+        button.title = "00:00:00:0"
         
         // Create menu
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Start/Pause", action: #selector(toggleTimer), keyEquivalent: " "))
         menu.addItem(NSMenuItem(title: "Reset", action: #selector(resetTimer), keyEquivalent: "r"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Settings...", action: #selector(showSettings), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit Timely", action: #selector(quitApp), keyEquivalent: "q"))
         
@@ -174,12 +209,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let hours = Int(interval) / 3600
         let minutes = (Int(interval) % 3600) / 60
         let seconds = Int(interval) % 60
-        let milliseconds = Int((interval.truncatingRemainder(dividingBy: 1)) * 10) % 10
-        return String(format: "%02d:%02d:%02d:%d", hours, minutes, seconds, milliseconds)
+        
+        if UserDefaults.standard.bool(forKey: "showMilliseconds") {
+            let milliseconds = Int((interval.truncatingRemainder(dividingBy: 1)) * 10) % 10
+            return String(format: "%02d:%02d:%02d:%d", hours, minutes, seconds, milliseconds)
+        } else {
+            return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        }
     }
 
     @objc func quitApp() {
         cleanup()
         NSApplication.shared.terminate(self)
+    }
+
+    @objc private func showSettings() {
+        if settingsWindow == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 300, height: 200),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "Timely Settings"
+            window.center()
+            window.contentView = NSHostingView(rootView: SettingsView())
+            window.isReleasedWhenClosed = false
+            settingsWindow = window
+        }
+        
+        settingsWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
